@@ -4,22 +4,25 @@
 
 typedef __uint128_t uint128_t;
 
+#define LEN 4
+
 // HAC, 14.12 Algorithm Multiple-precision multiplication
 void fe_widening_mul(uint64_t *w, uint64_t *x, uint64_t *y,
                      size_t digits_count) {
-  for (size_t i = 0; i < 2 * digits_count; i++) {
+  (void)digits_count;
+  for (size_t i = 0; i < 2 * LEN; i++) {
     w[i] = 0;
   }
   uint64_t u;
-  for (size_t i = 0; i < digits_count; i++) {
+  for (size_t i = 0; i < LEN; i++) {
     uint64_t c = 0;
-    for (size_t j = 0; j < digits_count; j++) {
+    for (size_t j = 0; j < LEN; j++) {
       uint128_t uv = ((uint128_t)x[j]) * y[i] + w[i + j] + c;
       w[i + j] = (uint64_t)uv;
       u = *((uint64_t *)&uv + 1);
       c = u;
     }
-    w[i + digits_count] = u;
+    w[i + LEN] = u;
   }
 }
 
