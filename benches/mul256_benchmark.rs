@@ -39,7 +39,7 @@ pub fn fast_batch_mul256_c_benchmark(c: &mut Criterion) {
                 w,
                 &xy[0..32 * BATCH_RUNS],
                 &xy[32 * BATCH_RUNS..(32 + 32) * BATCH_RUNS],
-                BATCH_RUNS as isize,
+                BATCH_RUNS,
             );
         })
     });
