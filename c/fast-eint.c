@@ -39,7 +39,7 @@ void fe_widening_mul_256_batch(uint64_t *w, uint64_t *x, uint64_t *y,
 void dump_num(uint64_t *a, size_t len) {
   printf("{");
   for (int i = len - 1; i >= 0; i--) {
-    printf("%lld", a[i]);
+    printf("%ld", a[i]);
     if (i != 0)
       printf(",");
   }
