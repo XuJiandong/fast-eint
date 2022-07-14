@@ -13,16 +13,14 @@ void fe_widening_mul(uint64_t *w, uint64_t *x, uint64_t *y,
   for (size_t i = 0; i < 2 * LEN; i++) {
     w[i] = 0;
   }
-  uint64_t u;
   for (size_t i = 0; i < LEN; i++) {
     uint64_t c = 0;
     for (size_t j = 0; j < LEN; j++) {
       uint128_t uv = ((uint128_t)x[j]) * y[i] + w[i + j] + c;
       w[i + j] = (uint64_t)uv;
-      u = *((uint64_t *)&uv + 1);
-      c = u;
+      c = *((uint64_t *)&uv + 1);
     }
-    w[i + LEN] = u;
+    w[i + LEN] = c;
   }
 }
 
