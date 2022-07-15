@@ -69,6 +69,41 @@ fn test_single_mul_256_c() {
 }
 
 #[test]
+fn test_single_mul_256_c_max() {
+    let buf_a = vec![
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF,
+    ];
+    let buf_b = vec![
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF,
+    ];
+
+    let a = E256::get_unsafe(&buf_a);
+    let b = E256::get_unsafe(&buf_b);
+    let result = {
+        let (lo, hi) = a.clone().widening_mul_u(b.clone());
+
+        let mut buf = vec![0u8; 64];
+        lo.put(&mut buf[0..32]);
+        hi.put(&mut buf[32..64]);
+
+        buf
+    };
+
+    let mut concat_buffer = [0u8; 128];
+    concat_buffer[0..32].copy_from_slice(&buf_a[..]);
+    concat_buffer[32..64].copy_from_slice(&buf_b[..]);
+
+    let (xy, w) = concat_buffer.split_at_mut(64);
+    c_impl::widening_mul_256(w, &xy[0..32], &xy[32..64], 1);
+
+    assert_eq!(result, concat_buffer[64..128]);
+}
+
+#[test]
 fn test_batch_mul_8_256() {
     let mut rng = ChaCha20Rng::seed_from_u64(123);
     let mut buf = vec![0u8; 32 * 8 * 2 + 64 * 8 + 16 * 2];

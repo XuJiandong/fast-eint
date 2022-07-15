@@ -5,6 +5,6 @@ fn main() {
         .flag("-O3")
         .flag("-Wall")
         .flag("-Werror")
-        .flag("-march=haswell")
+        //        .flag_if_supported("-march=haswell")
         .compile("fast-eint-c-impl");
 }
