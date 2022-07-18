@@ -1,7 +1,7 @@
 use std::cmp::min;
-use std::mem::transmute;
+use std::slice;
 
-fn widening_mul(w: &mut [u64], x: &[u64], y: &[u64], limit: usize) {
+pub fn widening_mul(w: &mut [u64], x: &[u64], y: &[u64], limit: usize) {
     let digits_count = x.len();
     for i in 0..w.len() {
         w[i] = 0;
@@ -19,9 +19,18 @@ fn widening_mul(w: &mut [u64], x: &[u64], y: &[u64], limit: usize) {
 }
 
 pub fn widening_mul_256(w: &mut [u8], x: &[u8], y: &[u8], batch: usize) {
-    let w = unsafe { transmute::<&mut [u8], &mut [u64]>(w) };
-    let x = unsafe { transmute::<&[u8], &[u64]>(x) };
-    let y = unsafe { transmute::<&[u8], &[u64]>(y) };
+    let w = unsafe {
+        let ptr = w.as_ptr() as *mut u64;
+        slice::from_raw_parts_mut(ptr, w.len() / 8)
+    };
+    let x = unsafe {
+        let ptr = x.as_ptr() as *mut u64;
+        slice::from_raw_parts(ptr, x.len() / 8)
+    };
+    let y = unsafe {
+        let ptr = y.as_ptr() as *mut u64;
+        slice::from_raw_parts(ptr, y.len() / 8)
+    };
 
     for i in 0..batch {
         let w1 = &mut w[8 * i..8 * i + 8];
