@@ -1,5 +1,6 @@
 use eint::{Eint, E256};
 use fast_eint::c_impl;
+use fast_eint::rust_impl;
 use fast_eint::widening_mul_256;
 use proptest::prelude::*;
 use rand_chacha::{
@@ -181,6 +182,36 @@ proptest! {
         let (x, wy) = buffer.split_at_mut(32*32);
         let (w, y) = wy.split_at_mut(32*64);
         c_impl::widening_mul_256(w, x, y, 16);
+
+        assert_eq!(expected, buffer[32 * 32..(32 + 64) * 32]);
+    }
+    #[test]
+    fn random_batch_16_mul_256_rust(
+        a in prop::array::uniform16(prop::array::uniform32(0u8..)),
+        b in prop::array::uniform16(prop::array::uniform32(0u8..)),
+    ) {
+        let mut expected = vec![0u8; 64 * 32];
+        for i in 0..16 {
+            let a = E256::get_unsafe(&a[i]);
+            let b = E256::get_unsafe(&b[i]);
+
+            let (lo, hi) = a.widening_mul_u(b);
+
+            lo.put(&mut expected[i * 64..i * 64 + 32]);
+            hi.put(&mut expected[i * 64 + 32..i * 64 + 64]);
+        }
+
+        // layout: b, c, a
+        let mut buffer = vec![0u8; (32 + 32 + 64) * 32];
+        for i in 0..16 {
+            buffer[i * 32..i * 32 + 32].copy_from_slice(&a[i]);
+            buffer[(32 + 64) * 32 + i * 32..(32 + 64) * 32 + i * 32 + 32].copy_from_slice(&b[i]);
+        }
+
+        // widening_mul_256(&mut buffer, 32 * 32, 0, (32 + 64) * 32, 16);
+        let (x, wy) = buffer.split_at_mut(32*32);
+        let (w, y) = wy.split_at_mut(32*64);
+        rust_impl::widening_mul_256(w, x, y, 16);
 
         assert_eq!(expected, buffer[32 * 32..(32 + 64) * 32]);
     }

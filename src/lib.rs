@@ -1,4 +1,6 @@
 pub mod c_impl;
+pub mod rust_impl;
+
 use std::arch::asm;
 
 #[inline(never)]
