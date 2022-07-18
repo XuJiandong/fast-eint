@@ -140,22 +140,22 @@ pub fn fast_single_mul256_rust2_benchmark(c: &mut Criterion) {
         let (xy, w) = buf.split_at_mut(32 + 32);
         let (x, y) = xy.split_at_mut(32);
 
-        let w = unsafe {
+        let w1 = unsafe {
             let ptr = w.as_ptr() as *mut u64;
-            slice::from_raw_parts_mut(ptr, 8)
+            slice::from_raw_parts_mut(ptr, w.len() / 8)
         };
-        let x = unsafe {
+        let x1 = unsafe {
             let ptr = x.as_ptr() as *mut u64;
-            slice::from_raw_parts(ptr, 4)
+            slice::from_raw_parts(ptr, x.len() / 8)
         };
-        let y = unsafe {
+        let y1 = unsafe {
             let ptr = y.as_ptr() as *mut u64;
-            slice::from_raw_parts(ptr, 4)
+            slice::from_raw_parts(ptr, y.len() / 8)
         };
-        assert_eq!(w.len(), 8);
-        assert_eq!(x.len(), 4);
-        assert_eq!(y.len(), 4);
-        b.iter(|| rust_impl::widening_mul(w, x, y, 8))
+        assert_eq!(w1.len(), 8);
+        assert_eq!(x1.len(), 4);
+        assert_eq!(y1.len(), 4);
+        b.iter(|| rust_impl::widening_mul(&mut w1[0..8], &x1[0..4], &y1[0..4]))
     });
 }
 
