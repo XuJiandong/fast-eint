@@ -9,20 +9,23 @@
 typedef __uint128_t uint128_t;
 
 // HAC, 14.12 Algorithm Multiple-precision multiplication
-void fe_widening_mul(uint64_t *w, uint64_t *x, uint64_t *y,
-                     size_t digits_count) {
+void fe_widening_mul(uint64_t *w, uint64_t *x, uint64_t *y, size_t digits_count,
+                     size_t limit) {
   (void)digits_count;
   for (size_t i = 0; i < 2 * digits_count; i++) {
     w[i] = 0;
   }
   for (size_t i = 0; i < digits_count; i++) {
     uint64_t c = 0;
-    for (size_t j = 0; j < digits_count; j++) {
+    size_t inner_count = FE_MIN(digits_count, limit - i);
+    for (size_t j = 0; j < inner_count; j++) {
       uint128_t uv = ((uint128_t)x[j]) * y[i] + w[i + j] + c;
       w[i + j] = (uint64_t)uv;
       c = *((uint64_t *)&uv + 1);
     }
-    w[i + digits_count] = c;
+    if ((i + inner_count) < limit) {
+      w[i + inner_count] = c;
+    }
   }
 }
 
@@ -63,7 +66,7 @@ void fe_widening_mul_256_batch(uint64_t *w, uint64_t *x, uint64_t *y,
 #ifdef FE_USE_COMBA
     fe_widening_mul_comba(w, x, y, 4);
 #else
-    fe_widening_mul(w, x, y, 4);
+    fe_widening_mul(w, x, y, 4, 8);
 #endif
     w += 8;
     x += 4;
@@ -78,7 +81,8 @@ void dump_num(uint64_t *a, size_t len) {
   printf("{");
   for (int i = len - 1; i >= 0; i--) {
     printf("%ld", a[i]);
-    if (i != 0) printf(",");
+    if (i != 0)
+      printf(",");
   }
   printf("}");
 }
